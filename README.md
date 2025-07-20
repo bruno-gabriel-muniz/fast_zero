@@ -1,4 +1,4 @@
-# Material de Estudo do Curso de FastAPI do canal Eduardo Mendes
+# Material de Estudo do Curso de FastAPI do canal [Eduardo Mendes](https://www.youtube.com/@Dunossauro)
 
 ## Sobre o curso
 
