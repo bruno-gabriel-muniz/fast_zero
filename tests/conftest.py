@@ -5,36 +5,55 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session
+from sqlalchemy.pool import StaticPool
 
-from fast_zero.app import app, db_fake
-from fast_zero.models import table_registry
+from fast_zero.app import app
+from fast_zero.database import get_session
+from fast_zero.models import User, table_registry
 
 
 @pytest.fixture
-def client():
-    db_fake.clear()
+def client(session):
+    def get_session_override():
+        return session
+
+    with TestClient(app) as client:
+        app.dependency_overrides[get_session] = get_session_override
+        yield client
+
+    app.dependency_overrides.clear()
+
     return TestClient(app)
 
 
 @pytest.fixture
-def db():
-    # SetUp
-    db_fake.append({
-        'username': 'alice',
-        'email': 'alice@example.com',
-        'id': 1,
-    })
-    db_fake.append({
-        'username': 'bob',
-        'email': 'bob@example.com',
-        'id': 2,
-    })
-    return db_fake
+def users(session):
+    user_a = User('alice', 'alice@example.com', 'secret')
+    user_b = User('bob', 'bob@example.com', 'secret')
+
+    session.add(user_a)
+    session.add(user_b)
+    session.commit()
+
+    out = [
+        {
+            'username': 'alice',
+            'email': 'alice@example.com',
+            'password': 'secret',
+        },
+        {'username': 'bob', 'email': 'bob@example.com', 'password': 'secret'},
+    ]
+
+    return out
 
 
 @pytest.fixture
 def session():
-    engine = create_engine('sqlite:///:memory:')
+    engine = create_engine(
+        'sqlite:///:memory:',
+        connect_args={'check_same_thread': False},
+        poolclass=StaticPool,
+    )
     table_registry.metadata.create_all(engine)
 
     with Session(engine) as session:
