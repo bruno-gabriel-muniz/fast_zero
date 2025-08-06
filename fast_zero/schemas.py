@@ -23,3 +23,8 @@ class UserList(BaseModel):
     users: list[UserPublic]
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class Token(BaseModel):
+    token_type: str
+    access_token: str

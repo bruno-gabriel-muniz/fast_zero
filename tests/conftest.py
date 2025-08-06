@@ -28,8 +28,12 @@ def client(session):
 
 @pytest.fixture
 def users(session):
-    user_a = User('alice', 'alice@example.com', 'secret')
-    user_b = User('bob', 'bob@example.com', 'secret')
+    password_hash = (  # Hash of password -> secret
+        '$argon2id$v=19$m=65536,t=3,p=4$3FYOAgaHUAqF+'
+        + '+qNIY46hQ$cW7w7d+p0lxubGuewmxao69l4TuW4u9XTrkjo64wWow'
+    )
+    user_a = User('alice', 'alice@example.com', password_hash)
+    user_b = User('bob', 'bob@example.com', password_hash)
 
     session.add(user_a)
     session.add(user_b)
@@ -39,10 +43,32 @@ def users(session):
         {
             'username': 'alice',
             'email': 'alice@example.com',
-            'password': 'secret',
+            'password': password_hash,
+            'clean_password': 'secret',
         },
-        {'username': 'bob', 'email': 'bob@example.com', 'password': 'secret'},
+        {
+            'username': 'bob',
+            'email': 'bob@example.com',
+            'password': password_hash,
+            'clean_password': 'secret',
+        },
     ]
+
+    return out
+
+
+@pytest.fixture
+def tokens(users, client):
+    out: list[str] = []
+    for user in users:
+        response = client.post(
+            '/token/',
+            data={
+                'username': user['email'],
+                'password': user['clean_password'],
+            },
+        )
+        out.append(response.json()['access_token'])
 
     return out
 
