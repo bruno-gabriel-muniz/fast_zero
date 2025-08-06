@@ -68,7 +68,11 @@ def list_users(
 
 
 @app.get('/users/{id}', status_code=HTTPStatus.OK, response_model=UserPublic)
-def get_user(id: int, session: Session = Depends(get_session)):
+def get_user(
+    id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     user = session.scalar(select(User).where(User.id == id))
 
     if not user:
