@@ -59,16 +59,14 @@ def users(session):
 
 @pytest.fixture
 def tokens(users, client):
-    out: list[str] = []
-    for user in users:
-        response = client.post(
-            '/token/',
-            data={
-                'username': user['email'],
-                'password': user['clean_password'],
-            },
-        )
-        out.append(response.json()['access_token'])
+    out: list[str] = [
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZUBleGFtcGxl'
+        + 'LmNvbSIsImV4cCI6MTc1NDUxMjg2OX0.U_CgW5azzvgirg3eA7vUnI_SzxKOjYQL8'
+        + 'KnHIA8JdAU',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2JAZXhhbXBsZS5j'
+        + 'b20iLCJleHAiOjE3NTQ1MTI4Njl9.6UDtnxEZNqsnU_WMbuyKUWZ3R2QZJNQoA3MF'
+        + 'rqbbijM',
+    ]
 
     return out
 

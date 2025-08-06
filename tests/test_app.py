@@ -84,13 +84,10 @@ def test_list_users(client, users, tokens):
     assert result[1]['username'] == users[1]['username']
 
 
-# TODO: update
-
-
-def test_get_user(client, users):
+def test_get_user(client, users, tokens):
     # Exec
     result = client.get(
-        '/users/1',
+        '/users/2', headers={'Authorization': f'Bearer {tokens[0]}'}
     )
 
     # Assert
@@ -98,11 +95,13 @@ def test_get_user(client, users):
 
     result = result.json()
 
-    assert result['username'] == users[0]['username']
+    assert result['username'] == users[1]['username']
 
 
-def test_get_user_not_found(client, users):
-    result = client.get('/users/3')
+def test_get_user_not_found(client, users, tokens):
+    result = client.get(
+        '/users/3', headers={'Authorization': f'Bearer {tokens[1]}'}
+    )
 
     assert result.status_code == HTTPStatus.NOT_FOUND
 
@@ -143,6 +142,21 @@ def test_update_user_conflict(client, users, tokens):
     assert result.json()['detail'] == 'Email Or Username Already Exist'
 
 
+def test_update_user_forbidden(client, users, tokens):
+    response = client.put(
+        '/users/1',
+        json={
+            'username': 'name',
+            'email': 'alice@example.com',
+            'password': 'secret',
+        },
+        headers={'Authorization': f'Bearer {tokens[1]}'},
+    )
+
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json()['detail'] == 'Not enough permissions'
+
+
 def test_delete_user(client, users, tokens):
     # Exec
     result = client.delete(
@@ -157,6 +171,15 @@ def test_delete_user(client, users, tokens):
 
     assert result['username'] == users[1]['username']
     assert result['email'] == users[1]['email']
+
+
+def test_delete_user_forbidden(client, users, tokens):
+    response = client.delete(
+        '/users/1', headers={'Authorization': f'Bearer {tokens[1]}'}
+    )
+
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json()['detail'] == 'Not enough permissions'
 
 
 def test_get_token(client, users):
