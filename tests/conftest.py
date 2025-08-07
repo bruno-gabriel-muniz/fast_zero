@@ -1,8 +1,10 @@
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi.testclient import TestClient
+from jwt import encode
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
@@ -10,6 +12,7 @@ from sqlalchemy.pool import StaticPool
 from fast_zero.app import app
 from fast_zero.database import get_session
 from fast_zero.models import User, table_registry
+from fast_zero.security import ALGORITHM, SECRET_KEY
 
 
 @pytest.fixture
@@ -59,14 +62,17 @@ def users(session):
 
 @pytest.fixture
 def tokens(users, client):
-    out: list[str] = [
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbGljZUBleGFtcGxl'
-        + 'LmNvbSIsImV4cCI6MTc1NDUxMjg2OX0.U_CgW5azzvgirg3eA7vUnI_SzxKOjYQL8'
-        + 'KnHIA8JdAU',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJib2JAZXhhbXBsZS5j'
-        + 'b20iLCJleHAiOjE3NTQ1MTI4Njl9.6UDtnxEZNqsnU_WMbuyKUWZ3R2QZJNQoA3MF'
-        + 'rqbbijM',
-    ]
+    out: list[str] = []
+    for user in users:
+        token = encode(
+            {
+                'sub': user['email'],
+                'exp': datetime.now(ZoneInfo('UTC')) + timedelta(minutes=30),
+            },
+            SECRET_KEY,
+            ALGORITHM,
+        )
+        out.append(token)
 
     return out
 
