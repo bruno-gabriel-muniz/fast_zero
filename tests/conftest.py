@@ -12,7 +12,12 @@ from sqlalchemy.pool import StaticPool
 from fast_zero.app import app
 from fast_zero.database import get_session
 from fast_zero.models import User, table_registry
-from fast_zero.security import ALGORITHM, SECRET_KEY
+from fast_zero.settings import Settings
+
+
+@pytest.fixture
+def settings():
+    return Settings()
 
 
 @pytest.fixture
@@ -61,7 +66,7 @@ def users(session):
 
 
 @pytest.fixture
-def tokens(users, client):
+def tokens(users, client, settings):
     out: list[str] = []
     for user in users:
         token = encode(
@@ -69,8 +74,8 @@ def tokens(users, client):
                 'sub': user['email'],
                 'exp': datetime.now(ZoneInfo('UTC')) + timedelta(minutes=30),
             },
-            SECRET_KEY,
-            ALGORITHM,
+            settings.SECRET_KEY,
+            settings.ALGORITHM,
         )
         out.append(token)
 

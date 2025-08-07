@@ -4,15 +4,15 @@ from zoneinfo import ZoneInfo
 
 from jwt import decode, encode
 
-from fast_zero.security import ALGORITHM, SECRET_KEY, create_access_token
+from fast_zero.security import create_access_token
 
 
-def test_create_access_token():
+def test_create_access_token(settings):
     test_data = {'test': 'test'}
 
     encoded = create_access_token(test_data)
 
-    decoded = decode(encoded, SECRET_KEY, ALGORITHM)
+    decoded = decode(encoded, settings.SECRET_KEY, settings.ALGORITHM)
 
     assert test_data['test'] == decoded['test']
     assert 'exp' in decoded
@@ -27,11 +27,11 @@ def test_jwt_invalid_token(client):
     assert response.json()['detail'] == 'Could not validate credentials'
 
 
-def test_jwt_invalid_without_sub(client):
+def test_jwt_invalid_without_sub(client, settings):
     invalid_token = encode(
         {'exp': datetime.now(tz=ZoneInfo('UTC')) + timedelta(minutes=30)},
-        SECRET_KEY,
-        ALGORITHM,
+        settings.SECRET_KEY,
+        settings.ALGORITHM,
     )
 
     response = client.delete(
@@ -42,14 +42,14 @@ def test_jwt_invalid_without_sub(client):
     assert response.json()['detail'] == 'Could not validate credentials'
 
 
-def test_jwt_invalid_sub(client):
+def test_jwt_invalid_sub(client, settings):
     invalid_token = encode(
         {
             'exp': datetime.now(tz=ZoneInfo('UTC')) + timedelta(minutes=30),
             'sub': 'nobody@example.com',
         },
-        SECRET_KEY,
-        ALGORITHM,
+        settings.SECRET_KEY,
+        settings.ALGORITHM,
     )
 
     response = client.delete(
