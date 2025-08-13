@@ -35,8 +35,8 @@ def client(session: AsyncSession):
     return TestClient(app)
 
 
-@pytest.fixture
-def users(session: AsyncSession):
+@pytest_asyncio.fixture
+async def users(session: AsyncSession):
     password_hash = (  # Hash of password -> secret
         '$argon2id$v=19$m=65536,t=3,p=4$3FYOAgaHUAqF+'
         + '+qNIY46hQ$cW7w7d+p0lxubGuewmxao69l4TuW4u9XTrkjo64wWow'
@@ -46,16 +46,18 @@ def users(session: AsyncSession):
 
     session.add(user_a)
     session.add(user_b)
-    session.commit()
+    await session.commit()
 
     out = [
         {
+            'id': 1,
             'username': 'alice',
             'email': 'alice@example.com',
             'password': password_hash,
             'clean_password': 'secret',
         },
         {
+            'id': 2,
             'username': 'bob',
             'email': 'bob@example.com',
             'password': password_hash,
@@ -67,7 +69,7 @@ def users(session: AsyncSession):
 
 
 @pytest.fixture
-def tokens(users, client, settings):
+def tokens(users, settings):
     out: list[str] = []
     for user in users:
         token = encode(

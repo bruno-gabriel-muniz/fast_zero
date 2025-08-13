@@ -2,6 +2,8 @@ from dataclasses import asdict
 from datetime import datetime
 
 import pytest
+
+# from pytest import raises
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,6 +31,7 @@ async def test_create_user(session: AsyncSession, mock_db_time):
         'password': 'secret',
         'created_at': time,
         'updated_at': time,
+        'todos': [],
     }
 
 
@@ -61,4 +64,5 @@ async def test_update_user(session, mock_db_time):
         'password': 'secret',
         'created_at': time,
         'updated_at': time1,
+        'todos': [],
     }
