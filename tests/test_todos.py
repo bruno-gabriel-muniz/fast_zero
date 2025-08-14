@@ -32,7 +32,7 @@ def test_create_todo(client: TestClient, tokens, mock_db_time):
             },
         )
 
-    assert response.status_code == HTTPStatus.OK
+    assert response.status_code == HTTPStatus.CREATED
 
     data = response.json()
 

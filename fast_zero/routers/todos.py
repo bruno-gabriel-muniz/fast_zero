@@ -23,7 +23,7 @@ T_User = Annotated[User, Depends(get_current_user)]
 T_FilterTodos = Annotated[FilterTodos, Query()]
 
 
-@router.post('/', response_model=TodoPublic)
+@router.post('/', status_code=HTTPStatus.CREATED, response_model=TodoPublic)
 async def create_todo(todo: TodoSchema, session: T_Session, user: T_User):
     db_todo = Todo(
         title=todo.title,
